@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { Home as HomeIcon, Compass, Search as SearchIcon, Heart as HeartIcon, ShoppingBag as BagIcon } from 'lucide-react';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
@@ -346,6 +347,10 @@ export default function App() {
         onToggleWishlist={handleToggleWishlist}
         onAddToCart={handleAddToCart}
         onOpenSizeGuide={() => setIsSizeGuideOpen(true)}
+        onBuyNow={(shoe, size, color, quantity) => {
+          handleAddToCart(shoe, size, color, quantity);
+          setIsCartOpen(true);
+        }}
       />
 
       <SearchModal
@@ -364,6 +369,63 @@ export default function App() {
         onClose={() => setIsAccountOpen(false)}
         onShowNotice={(title, msg) => showToast(title, msg, 'info')}
       />
+
+      {/* Mobile Sticky Bottom Bar (Glassmorphic) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200 py-2.5 px-6 flex justify-around items-center shadow-lg">
+        <button
+          onClick={() => handleTabChange('Home')}
+          className={`flex flex-col items-center gap-1 text-[10px] font-semibold transition-colors cursor-pointer ${
+            activeTab === 'Home' ? 'text-neutral-950 font-bold' : 'text-neutral-500 hover:text-neutral-900'
+          }`}
+        >
+          <HomeIcon className="w-5 h-5 stroke-[1.8]" />
+          <span>Home</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange('Shop')}
+          className={`flex flex-col items-center gap-1 text-[10px] font-semibold transition-colors cursor-pointer ${
+            activeTab === 'Shop' ? 'text-neutral-950 font-bold' : 'text-neutral-500 hover:text-neutral-900'
+          }`}
+        >
+          <Compass className="w-5 h-5 stroke-[1.8]" />
+          <span>Shop</span>
+        </button>
+
+        <button
+          onClick={() => setIsSearchOpen(true)}
+          className="flex flex-col items-center gap-1 text-[10px] font-semibold text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
+        >
+          <SearchIcon className="w-5 h-5 stroke-[1.8]" />
+          <span>Search</span>
+        </button>
+
+        <button
+          onClick={() => setIsWishlistOpen(true)}
+          className="relative flex flex-col items-center gap-1 text-[10px] font-semibold text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
+        >
+          <HeartIcon className="w-5 h-5 stroke-[1.8]" />
+          {wishlistIds.length > 0 && (
+            <span className="absolute -top-1 right-2 bg-red-500 text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+              {wishlistIds.length}
+            </span>
+          )}
+          <span>Saved</span>
+        </button>
+
+        <button
+          onClick={() => setIsCartOpen(true)}
+          className="relative flex flex-col items-center gap-1 text-[10px] font-semibold text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
+        >
+          <BagIcon className="w-5 h-5 stroke-[1.8]" />
+          {totalCartCount > 0 && (
+            <span className="absolute -top-1 right-1.5 bg-neutral-950 text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+              {totalCartCount}
+            </span>
+          )}
+          <span>Cart</span>
+        </button>
+      </nav>
 
       {/* Toast Feedback notifications */}
       <ToastNotice toasts={toasts} onDismiss={dismissToast} />

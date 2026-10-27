@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, Check } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, Check, Tag, Clock } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { CartItem } from '../types';
 
@@ -34,21 +34,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const shipping = subtotal > 100 || items.length === 0 ? 0 : 15;
   const total = Math.max(0, subtotal - discountAmount + shipping);
 
-  const applyPromo = (e: React.FormEvent) => {
-    e.preventDefault();
+  const applyCode = (codeToApply: string) => {
     setPromoError('');
     setPromoSuccess('');
-    const code = promoCode.trim().toUpperCase();
+    const code = codeToApply.trim().toUpperCase();
 
     if (code === 'SOLEX40' || code === 'SUMMER40') {
       setDiscountPercent(40);
       setPromoSuccess('40% Summer Sale discount applied!');
+      setPromoCode('SOLEX40');
     } else if (code === 'SAVE10') {
       setDiscountPercent(10);
       setPromoSuccess('10% VIP discount applied!');
+      setPromoCode('SAVE10');
     } else {
       setPromoError('Invalid code. Try "SOLEX40" for 40% off!');
     }
+  };
+
+  const applyPromo = (e: React.FormEvent) => {
+    e.preventDefault();
+    applyCode(promoCode);
   };
 
   const handleCheckout = () => {
@@ -57,13 +63,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       setIsCheckingOut(false);
       setOrderComplete(true);
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: 120,
+        spread: 80,
         origin: { y: 0.6 },
       });
       setTimeout(() => {
         onClearCart();
-      }, 3500);
+      }, 4000);
     }, 1200);
   };
 
@@ -97,9 +103,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {/* Free Shipping Meter */}
           <div className="bg-[#f8f9fa] px-5 py-3 border-b border-neutral-100 text-xs">
             {subtotal >= 100 ? (
-              <div className="flex items-center gap-1.5 text-emerald-700 font-semibold">
-                <Check className="w-4 h-4 text-emerald-600" />
-                <span>You unlocked Free Standard Shipping!</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-emerald-700 font-semibold">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>You unlocked Free Standard Shipping!</span>
+                </div>
+                <span className="text-[10px] text-neutral-400 flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> 2-3 Days
+                </span>
               </div>
             ) : (
               <div>
@@ -217,29 +228,49 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {/* Footer calculation & checkout */}
           {!orderComplete && items.length > 0 && (
             <div className="p-5 border-t border-neutral-100 bg-neutral-50/50 space-y-3">
-              {/* Promo Code Form */}
-              <form onSubmit={applyPromo} className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Promo code (try SOLEX40)"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  className="flex-1 bg-white border border-neutral-200 rounded-lg px-3 py-1.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 uppercase font-medium"
-                />
-                <button
-                  type="submit"
-                  className="bg-neutral-900 hover:bg-neutral-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  Apply
-                </button>
-              </form>
+              {/* Promo Code Form & Quick Chips */}
+              <div>
+                <form onSubmit={applyPromo} className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    className="flex-1 bg-white border border-neutral-200 rounded-lg px-3 py-1.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 uppercase font-medium"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-neutral-900 hover:bg-neutral-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Apply
+                  </button>
+                </form>
 
-              {promoSuccess && (
-                <p className="text-[11px] text-emerald-600 font-semibold">{promoSuccess}</p>
-              )}
-              {promoError && (
-                <p className="text-[11px] text-red-500 font-medium">{promoError}</p>
-              )}
+                {/* Quick Coupon Chips */}
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => applyCode('SOLEX40')}
+                    className="text-[10px] bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Tag className="w-2.5 h-2.5" /> SOLEX40 (40% OFF)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyCode('SAVE10')}
+                    className="text-[10px] bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border border-neutral-200 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Tag className="w-2.5 h-2.5" /> SAVE10 (10% OFF)
+                  </button>
+                </div>
+
+                {promoSuccess && (
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1.5">{promoSuccess}</p>
+                )}
+                {promoError && (
+                  <p className="text-[11px] text-red-500 font-medium mt-1.5">{promoError}</p>
+                )}
+              </div>
 
               {/* Price Breakdown */}
               <div className="space-y-1.5 text-xs text-neutral-600 pt-2 border-t border-neutral-200/60">

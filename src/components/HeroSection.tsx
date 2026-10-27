@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { HERO_SLIDES } from '../data/shoesData';
 import { Shoe } from '../types';
@@ -15,7 +15,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onSelectShoe,
 }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
+
   const slide = HERO_SLIDES[currentSlideIndex];
+
+  // Auto-slide every 6 seconds if not hovered
+  useEffect(() => {
+    if (isHovered) return;
+    const interval = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [isHovered]);
 
   const handleNext = () => {
     setCurrentSlideIndex((prev) => (prev + 1) % HERO_SLIDES.length);
@@ -25,11 +38,24 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     setCurrentSlideIndex((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMousePos({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setMousePos({ x: 0, y: 0 });
+    setIsHovered(false);
+  };
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-10">
-      <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[500px] lg:min-h-[540px] rounded-[32px] overflow-hidden shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[500px] lg:min-h-[540px] rounded-[32px] overflow-hidden shadow-sm border border-neutral-200/60">
         {/* Left Col: Clean Light Grey Side */}
-        <div className="lg:col-span-6 bg-[#f4f5f7] p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
+        <div className="lg:col-span-6 bg-[#f4f5f7] p-8 sm:p-12 lg:p-16 flex flex-col justify-center relative">
           <div className="max-w-xl">
             <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-extrabold text-neutral-950 tracking-tight leading-[1.04]">
               Step Into <br />
@@ -61,13 +87,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
 
         {/* Right Col: Dark Angled Card Showcase */}
-        <div className="lg:col-span-6 bg-[#161616] relative flex items-center justify-center p-6 sm:p-10 lg:p-12 overflow-hidden min-h-[380px] lg:min-h-auto">
+        <div
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={handleMouseLeave}
+          className="lg:col-span-6 bg-[#161616] relative flex items-center justify-center p-6 sm:p-10 lg:p-12 overflow-hidden min-h-[400px] lg:min-h-auto"
+        >
           {/* Subtle background ambient glow */}
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-red-600/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
 
           {/* Perspective 3D Tilted Card Container */}
           <div
+            ref={cardRef}
+            onMouseMove={handleMouseMove}
             onClick={() =>
               onSelectShoe({
                 id: slide.id,
@@ -84,21 +116,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 colors: [slide.colorway],
               })
             }
-            className="group relative cursor-pointer max-w-md w-full transition-transform duration-500 ease-out hover:scale-[1.02]"
+            className="group relative cursor-pointer max-w-md w-full transition-transform duration-300 ease-out"
+            style={{
+              transform: `perspective(1000px) rotateY(${mousePos.x * 12}deg) rotateX(${-mousePos.y * 12}deg)`,
+            }}
           >
             {/* Tilted Photo Card */}
-            <div className="relative transform -rotate-7 lg:-rotate-8 group-hover:-rotate-3 transition-transform duration-500 ease-out shadow-2xl rounded-2xl overflow-hidden border-4 border-white/10 bg-neutral-900">
+            <div className="relative transform -rotate-7 lg:-rotate-8 group-hover:-rotate-2 transition-transform duration-500 ease-out shadow-2xl rounded-2xl overflow-hidden border-4 border-white/10 bg-neutral-900">
               <div className="aspect-[16/10] sm:aspect-[16/10] w-full overflow-hidden relative">
                 <img
                   src={slide.image}
                   alt={slide.name}
                   className="w-full h-full object-cover object-center filter saturate-[1.1] transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
+                
+                {/* Floating price badge */}
+                <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-xs font-bold text-white shadow-md">
+                  ${slide.price.toFixed(2)}
+                </div>
               </div>
             </div>
 
-            {/* Floating Navigation Controls (Left/Right Arrows on subtle hover) */}
+            {/* Floating Navigation Controls */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -130,7 +170,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <p className="text-xs sm:text-sm font-bold text-white tracking-tight mt-0.5">
                 {slide.name}
               </p>
-              
+
               {/* Carousel Dots */}
               <div className="flex items-center justify-end gap-1.5 mt-2">
                 {HERO_SLIDES.map((_, idx) => (
