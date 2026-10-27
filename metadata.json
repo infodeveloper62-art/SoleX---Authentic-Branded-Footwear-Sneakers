@@ -1,0 +1,6 @@
+{
+  "name": "SoleX - Authentic Branded Footwear & Sneakers",
+  "description": "Discover authentic branded shoes for every step of your journey. Shop Nike, Adidas, Puma, New Balance, Converse, and Vans at SoleX.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
